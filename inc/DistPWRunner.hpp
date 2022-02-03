@@ -10,6 +10,7 @@
 
 #include "DistFastaData.hpp"
 #include "Types.hpp"
+#include "align/PWAlign.hpp"
 
 
 

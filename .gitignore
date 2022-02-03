@@ -175,3 +175,9 @@ cmake_install.cmake
 comb_blas
 lbl_dal
 Makefile
+
+build/
+install/
+*.err
+*.out
+sim_mat.mtx

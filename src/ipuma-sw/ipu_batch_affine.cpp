@@ -14,6 +14,7 @@
 #include "timing.hpp"
 #include "vector.hpp"
 #include "ipu_batch_affine.h"
+#include <omp.h>
 
 namespace ipu {
 namespace batchaffine {
@@ -414,12 +415,6 @@ void SWAlgorithm::compare_local(const std::vector<std::string>& A, const std::ve
   for (size_t i = 0; i < mapping.size(); ++i) {
     size_t mapped_i = mapping[i];
     scores[i] = results[mapped_i + 2];
-    if (scores[i] >= KLIGN_IPU_MAXAB_SIZE) {
-      PLOGW << "Expected " << A.size() << " valid comparisons. But got " << i << " instead.";
-      PLOGW.printf("Thread %d received wrong data FIRST, try again data=%d, map_translate=%d\n", thread_id, scores[i], mapping[i]);
-      exit(1);
-      // goto retry;
-    }
     size_t a_range_offset = scores.size();
     size_t b_range_offset = a_range_offset + a_range_result.size();
     a_range_result[i] = results[a_range_offset + mapped_i + 2];
@@ -483,7 +478,9 @@ void SWAlgorithm::prepare_remote(IPUAlgoConfig& algoconfig, SWConfig& config, co
   int8_t* b = (int8_t*)(inputs_begin + b_offset);
   int32_t* b_len = inputs_begin + blen_offset;
 
-  for (const auto [bucket, i] : mapping) {
+  #pragma omp parallel for
+  for (size_t j = 0; j < mapping.size(); j++) {
+    const auto [bucket, i] = mapping[j];
     auto& [bN, bA, bB] = buckets[bucket];
     auto aSize = vA[i].size();
     auto bSize = vB[i].size();

@@ -1,19 +1,19 @@
 /**
  * @file
- *	logger.cpp
+ *      logger.cpp
  *
  * @author
- *	Oguz Selvitopi
+ *      Oguz Selvitopi
  *
  * @date
  *
  * @brief
- *	Simple logging utility
+ *      Simple logging utility
  *
  * @todo
  *
  * @note
- *	
+ *      
  */
 
 #include <memory>
@@ -22,10 +22,13 @@
 
 
 
+
 namespace
 pastis
 {
 
-std::shared_ptr<Logger>	 Logger::logger_ = nullptr;
+std::shared_ptr<Logger>  Logger::logger_ = nullptr;
+
+
 
 }

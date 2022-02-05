@@ -21,6 +21,8 @@
 #define KLIGN_IPU_BUFSIZE 30000
 #endif
 
+#define IPUMA_DEBUG
+
 #include <poplar/Graph.hpp>
 #include <poplar/Engine.hpp>
 

@@ -37,8 +37,8 @@ class
         .maxAB = 2000,
         .maxBatches = 50,
         .bufsize = 10000,
-        .vtype = ipu::batchaffine::VertexType::cpp,
-        .fillAlgo = ipu::batchaffine::partition::Algorithm::fillFirst,
+        .vtype = ipu::batchaffine::VertexType::assembly,
+        .fillAlgo = ipu::batchaffine::partition::Algorithm::greedy,
     };
 
     init_single_ipu(SW_CONFIGURATION, ALGO_CONFIGURATION);

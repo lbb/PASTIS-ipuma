@@ -2,11 +2,15 @@
 
 #include "../../inc/align/IPumaAligner.hpp"
 
+
+#include <iostream>
+#include <fstream>
+
+
 #include <algorithm>
 #include <utility>
 
 #include "../../inc/util.hpp"
-#include "ipuma-sw/vector.hpp"
 
 using std::max;
 using std::min;
@@ -83,10 +87,6 @@ void IPumaAligner::aln_batch(std::tuple<uint64_t, uint64_t, CommonKmerLight *> *
   vector<string> seqs_r(npairs);  // refs - longer seqs
   uint64_t max_rlen = 0;
   uint64_t max_qlen = 0;
-  // ADEPT needs uppercase seqs
-  auto fun_upper = [](char c) {
-    return static_cast<char>(std::toupper(c));
-  };
 
   int numThreads = 1;
 #ifdef THREADED
@@ -113,8 +113,6 @@ void IPumaAligner::aln_batch(std::tuple<uint64_t, uint64_t, CommonKmerLight *> *
       seqs_r[i - beg] = rseq;
     }
 
-    std::transform(seqs_q[i - beg].begin(), seqs_q[i - beg].end(), seqs_q[i - beg].begin(), fun_upper);
-    std::transform(seqs_r[i - beg].begin(), seqs_r[i - beg].end(), seqs_r[i - beg].begin(), fun_upper);
     max_rlen = max(max_rlen, seqs_r[i - beg].size());
     max_qlen = max(max_qlen, seqs_q[i - beg].size());
   }
@@ -122,6 +120,24 @@ void IPumaAligner::aln_batch(std::tuple<uint64_t, uint64_t, CommonKmerLight *> *
   parops->tp->stop_timer("sim:align_pre");
 
   parops->tp->start_timer("sim:align");
+
+
+{
+  ofstream myfile;
+  myfile.open ("As.txt");
+  for (auto &&i : seqs_r) {
+    myfile << i << '\n';
+  }
+  myfile.close();
+}
+{
+  ofstream myfile;
+  myfile.open ("Bs.txt");
+  for (auto &&i : seqs_q) {
+    myfile << i << '\n';
+  }
+  myfile.close();
+}
 
   driver_algo->compare_local(seqs_r, seqs_q);
   auto [scores, r_range_result, q_range_result] = driver_algo->get_result();

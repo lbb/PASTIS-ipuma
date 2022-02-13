@@ -1,0 +1,16 @@
+# parameters for aligner
+add_definitions(-DALN_MATCH_SCORE=1)
+add_definitions(-DALN_MISMATCH_COST=1)
+add_definitions(-DALN_GAP_OPENING_COST=1)
+add_definitions(-DALN_GAP_EXTENDING_COST=1)
+add_definitions(-DALN_AMBIGUITY_COST=1)
+
+# IPU parameters
+add_definitions(-DKLIGN_IPU_TILES=8832)
+add_definitions(-DKLIGN_IPU_BUFSIZE=43000)
+add_definitions(-DKLIGN_IPU_MAXAB_SIZE=2000)
+add_definitions(-DKLIGN_IPU_MAX_BATCHES=300)
+add_definitions(-DKLIGN_IPUS_LOCAL=1)
+
+# debug params
+add_definitions(-DIPUMA_DEBUG)

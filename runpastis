@@ -45,9 +45,12 @@ export IPUOF_CONFIG_PATH=/cm/shared/apps/graphcore/vipu/etc/ipuof.conf.d/p64_cl_
 
 
 # mpirun -np $SLURM_NTASKS -H ipu-pod64-server1 --mca btl_openib_if_include mlx5_4:1 --mca btl self  --mca pml ucx -- \
+# export POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true", "autoReport.directory":"/home/lukb/git/PASTIS/_profile", "autoReport.executionProfileProgramRunCount":"10"}'
 srun --mpi=pmi2 -n $SLURM_NTASKS --ntasks 1 -- \
-./build/pastis -i /home/lukb/git/PASTIS/tests/scope_77k.fa -c 77040 --af sim_mat.mtx --ckthr 1 --sfa #--absw --bsz 350000
-# ./build/pastis -i /global/D1/projects/ipumer/datasets/metaclust/metaclust50_50K.fasta -c 500000 --af sim_mat.mtx --ckthr 1 --sxa 49 --absw
+./build/pastis -i /global/D1/projects/ipumer/datasets/metaclust/metaclust50_50K.fasta -c 500000 --af sim_mat.mtx --ckthr 1 --absw --bsz 550000
+# ./build/pastis -i /home/lukb/git/PASTIS/tests/scope_77k.fa -c 77040 --af sim_mat.mtx --ckthr 1 --absw --bsz 850000
+#./build/pastis -i /home/lukb/git/PASTIS/tests/scope_77k.fa -c 77040 --af sim_mat.mtx --ckthr 1 --sfa #--absw --bsz 350000
+# ./build/pastis -i /global/D1/projects/ipumer/datasets/metaclust/metaclust50_50K.fasta -c 500000 --af sim_mat.mtx --ckthr 1 --sxa 49
 
 
  

@@ -13,7 +13,7 @@
 #include "seqan/sequence.h"
 #include "seqan/stream.h"
 
-#include "ipuma-sw/vector.hpp"
+#include "../../ipuma-lib/src/swatlib/vector.hpp"
 
 #include <iostream>
 #include <fstream>

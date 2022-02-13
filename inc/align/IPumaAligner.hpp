@@ -5,7 +5,8 @@
 #include <vector>
 
 #include "PWAlign.hpp"
-#include "ipuma-sw/driver.hpp"
+#include "../../ipuma-lib/src/driver.hpp"
+#include "../../ipuma-lib/src/swatlib/vector.hpp"
 
 namespace pastis {
 
@@ -22,24 +23,25 @@ class
  public:
   IPumaAligner(int gap_open, int gap_ext, uint32_t bsz = 1e6) : PWAlign(), g_batch_sz_(bsz) {
     this->gaps_ = std::make_tuple<>(gap_open, gap_ext);
-    static const ipu::SWConfig SW_CONFIGURATION = {
-        .gapInit = -gap_open,
-        .gapExtend = -gap_ext,
-        .matchValue = 1,
-        .mismatchValue = -1,
-        .ambiguityValue = -1,
-        .similarity = swatlib::Similarity::blosum62,
-        .datatype = swatlib::DataType::aminoAcid,
+
+        static const ipu::SWConfig SW_CONFIGURATION = {
+            .gapInit = -gap_open,
+            .gapExtend = -gap_ext,
+            .matchValue = ALN_MATCH_SCORE,
+            .mismatchValue = -ALN_MISMATCH_COST,
+            .ambiguityValue = -ALN_AMBIGUITY_COST,
+            .similarity = swatlib::Similarity::blosum62,
+            .datatype = swatlib::DataType::aminoAcid,
     };
 
-    static const ipu::batchaffine::IPUAlgoConfig ALGO_CONFIGURATION = {
-        .tilesUsed = (1472 * 6),
-        .maxAB = 2000,
-        .maxBatches = 50,
-        .bufsize = 10000,
-        .vtype = ipu::batchaffine::VertexType::assembly,
-        .fillAlgo = ipu::batchaffine::partition::Algorithm::greedy,
-    };
+static const ipu::batchaffine::IPUAlgoConfig ALGO_CONFIGURATION = {
+            KLIGN_IPU_TILES,
+            KLIGN_IPU_MAXAB_SIZE,
+            KLIGN_IPU_MAX_BATCHES,
+            KLIGN_IPU_BUFSIZE,
+            ipu::batchaffine::VertexType::cpp,
+            ipu::partition::Algorithm::roundRobin
+};
 
     init_single_ipu(SW_CONFIGURATION, ALGO_CONFIGURATION);
     this->driver_algo = getDriver();

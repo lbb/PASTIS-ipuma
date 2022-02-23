@@ -6,3 +6,9 @@
         path = seqan
         url = https://github.com/seqan/seqan
         branch = develop
+[submodule "build/ipuma-lib"]
+	path = build/ipuma-lib
+	url = git@github.com:xiamaz/ipuma-lib.git
+[submodule "ipuma-lib"]
+	path = ipuma-lib
+	url = git@github.com:xiamaz/ipuma-lib.git

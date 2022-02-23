@@ -34,13 +34,13 @@ class
             .datatype = swatlib::DataType::aminoAcid,
     };
 
-static const ipu::batchaffine::IPUAlgoConfig ALGO_CONFIGURATION = {
+static const ipu::IPUAlgoConfig ALGO_CONFIGURATION = {
             KLIGN_IPU_TILES,
             KLIGN_IPU_MAXAB_SIZE,
             KLIGN_IPU_MAX_BATCHES,
             KLIGN_IPU_BUFSIZE,
-            ipu::batchaffine::VertexType::cpp,
-            ipu::partition::Algorithm::roundRobin
+            ipu::VertexType::multiasm,
+            ipu::Algorithm::greedy
 };
 
     init_single_ipu(SW_CONFIGURATION, ALGO_CONFIGURATION);

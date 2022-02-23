@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <utility>
 
+#include <set>
+
 #include "../../inc/util.hpp"
 
 using std::max;
@@ -96,13 +98,11 @@ void IPumaAligner::aln_batch(std::tuple<uint64_t, uint64_t, CommonKmerLight *> *
   }
 #endif
 
-#pragma omp parallel for reduction(max \
-                                   : max_rlen, max_qlen)
+#pragma omp parallel for reduction(max : max_rlen, max_qlen)
   for (uint64_t i = beg; i < end; ++i) {
     uint64_t lr = std::get<0>(mattuples[i]);
     uint64_t lc = std::get<1>(mattuples[i]);
-    assert(lr + bl_roffset < rseqs_.size() &&
-           lc + bl_coffset < cseqs_.size());
+    assert(lr + bl_roffset < rseqs_.size() && lc + bl_coffset < cseqs_.size());
     string &rseq = rseqs_[lr + bl_roffset];
     string &cseq = cseqs_[lc + bl_coffset];
     if (rseq.size() < cseq.size()) {
@@ -117,37 +117,70 @@ void IPumaAligner::aln_batch(std::tuple<uint64_t, uint64_t, CommonKmerLight *> *
     max_qlen = max(max_qlen, seqs_q[i - beg].size());
   }
 
+  std::vector<ipu::Comparison> pairs(npairs);
+  vector<string> seq_pool;
+  std:unordered_map<int, int> seqid_map;
+  int inserts = 0;
+
+  for (uint64_t i = beg; i < end; ++i) {
+    int j = i - beg;
+    uint64_t lr = std::get<0>(mattuples[i]);
+    uint64_t lc = std::get<1>(mattuples[i]);
+    assert(lr + bl_roffset < rseqs_.size() && lc + bl_coffset < cseqs_.size());
+    int lrI = 0;
+    auto iter = seqid_map.find(lr);
+    if (iter == seqid_map.end()) {
+      seq_pool.emplace_back(rseqs_[lr + bl_roffset]);
+      auto pos = inserts++;
+      seqid_map[lr] = pos;
+      lrI = pos;
+    } else {
+       lrI = iter->second;
+    }
+
+    int lcI = 0;
+     iter = seqid_map.find(lc);
+    if (iter == seqid_map.end()) {
+      seq_pool.emplace_back(cseqs_[lc + bl_roffset]);
+      auto pos = inserts++;
+      seqid_map[lc] = pos;
+      lcI = pos;
+    } else {
+       lcI = iter->second;
+    }
+    pairs[j] = {lrI, lcI};
+
+    max_rlen = max(max_rlen, rseqs_[lr + bl_roffset].size());
+    max_qlen = max(max_qlen, cseqs_[lc + bl_roffset].size());
+  }
+
+  printf("Map has %d entries, while we have N-pairs %d\n", seqid_map.size(), npairs);
+
   parops->tp->stop_timer("sim:align_pre");
 
   parops->tp->start_timer("sim:align");
 
 
-{
-  ofstream myfile;
-  myfile.open ("As.txt");
-  for (auto &&i : seqs_r) {
-    myfile << i << '\n';
-  }
-  myfile.close();
-}
-{
-  ofstream myfile;
-  myfile.open ("Bs.txt");
-  for (auto &&i : seqs_q) {
-    myfile << i << '\n';
-  }
-  myfile.close();
-}
+// {
+//   ofstream myfile;
+//   myfile.open ("As.txt");
+//   for (auto &&i : seqs_r) {
+//     myfile << i << '\n';
+//   }
+//   myfile.close();
+// }
+// {
+//   ofstream myfile;
+//   myfile.open ("Bs.txt");
+//   for (auto &&i : seqs_q) {
+//     myfile << i << '\n';
+//   }
+//   myfile.close();
+// }
 
-  driver_algo->compare_local(seqs_r, seqs_q);
+  driver_algo->compare_mn_local(seq_pool, pairs);
+  // driver_algo->compare_local(seqs_r, seqs_q);
   auto [scores, r_range_result, q_range_result] = driver_algo->get_result();
-
-//   auto all_results = ADEPT::multi_gpu(seqs_r, seqs_q,
-//                                       ADEPT::options::ALG_TYPE::SW,
-//                                       ADEPT::options::SEQ_TYPE::AA,
-//                                       ADEPT::options::CIGAR::NO,
-//                                       max_rlen, max_qlen,
-//                                       score_mat_, gaps_, g_batch_sz_);
 
   parops->tp->stop_timer("sim:align");
 

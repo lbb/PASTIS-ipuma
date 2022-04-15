@@ -99,8 +99,8 @@ void pw_aln_batch(
           C.Owner(nrows, ncols, gr, gc, lr, lc);
           uint64_t bl_roffset = bri == -1 ? 0 : dfd->bl_rseq_offset(bri);
           uint64_t bl_coffset = bci == -1 ? 0 : dfd->bl_cseq_offset(bci);
-          return (pwa.rseq_len(lr + bl_roffset) >= 2000) ||
-                 (pwa.cseq_len(lc + bl_coffset) >= 2000);
+          return (pwa.rseq_len(lr + bl_roffset) >= 1024) &&
+                 (pwa.cseq_len(lc + bl_coffset) >= 1024);
         };
     C.PruneI(seq_len_filter);
 
@@ -121,7 +121,7 @@ void pw_aln_batch(
   // batch alignment
   // @OGUZ-TODO make this parallel
   uint64_t l_nnz = C.seqptr()->getnnz();
-  parops->logger->log("l_nnz before alignment " + to_string(l_nnz));
+  parops->info("l_nnz before alignment " + to_string(l_nnz));
   if (l_nnz != 0) {
     uint64_t batch_sz = params.aln_batch_sz;
     uint64_t batch_cnt = l_nnz / batch_sz + 1;
@@ -144,10 +144,22 @@ void pw_aln_batch(
 #if PASTIS_DBG_LVL > 0
     uint64_t tot_sz = (sizeof(uint64_t) * 2 + sizeof(NT *)) * l_nnz;
     parops->bytes_alloc += tot_sz;
-    parops->logger->log("approximate memory in usage " +
+    parops->info("approximate memory in usage " +
                         gb_str(parops->bytes_alloc));
 #endif
-
+if (params.pw_aln == params_t::PwAln::ALN_ADEPT_GPUBSW) {
+      batch_idx = batch_cnt - 1;
+      uint64_t beg = 0 * batch_sz;
+      uint64_t end = ((batch_idx + 1) * batch_sz > l_nnz) ? l_nnz : ((batch_idx + 1) * batch_sz);
+      parops->logger->log("processing batch " +
+                          to_string(batch_idx) + " of " +
+                          to_string(batch_cnt) +
+                          " size " + to_string(end - beg));
+      pwa.aln_batch(mattuples, beg, end,
+                    (bri == -1 ? 0 : dfd->bl_rseq_offset(bri)),
+                    (bci == -1 ? 0 : dfd->bl_cseq_offset(bci)),
+                    params);
+} else {
     while (batch_idx < batch_cnt) {
       uint64_t beg = batch_idx * batch_sz;
       uint64_t end = ((batch_idx + 1) * batch_sz > l_nnz) ? l_nnz : ((batch_idx + 1) * batch_sz);
@@ -161,6 +173,7 @@ void pw_aln_batch(
                     params);
       ++batch_idx;
     }
+}
 
     delete[] mattuples;
 

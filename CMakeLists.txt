@@ -10,7 +10,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/Modules)
 
-include(CMakeDefinitions.txt)
+# include(CMakeDefinitions.txt)
 include_directories("plog/include")
 include_directories(
         ${PROJECT_SOURCE_DIR}/seqan/include 
@@ -65,7 +65,7 @@ endif()
 # # Set up popc flags.
 # set(POPC_FLAGS -I ${CMAKE_SOURCE_DIR}/include)
 
-# if(CMAKE_BUILD_TYPE STREQUAL Debug)
+# if(CMAKE_BUILD_TYPE STREQUAL CMAKE_BUILD_TYPE)
 #   list(APPEND POPC_FLAGS -g)
 # elseif(CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
 #   list(APPEND POPC_FLAGS -O3 -g)

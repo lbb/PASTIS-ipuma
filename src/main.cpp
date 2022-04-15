@@ -380,6 +380,7 @@ main
 
         int nthreads = 1;
         #ifdef THREADED
+	printf("THREADED is enabled\n");
         #pragma omp parallel
         {
                 nthreads = omp_get_num_threads();

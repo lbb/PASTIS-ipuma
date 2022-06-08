@@ -12,3 +12,6 @@
 [submodule "ipuma-lib"]
 	path = ipuma-lib
 	url = git@github.com:xiamaz/ipuma-lib.git
+[submodule "plog"]
+	path = plog
+	url = git@github.com:SergiusTheBest/plog.git
